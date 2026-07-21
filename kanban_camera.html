@@ -110,6 +110,24 @@
     font-size: 13px;
     line-height: 1.5;
   }
+  #startOverlay {
+    position: absolute; inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    z-index: 5;
+  }
+  #startOverlay.hidden { display: none; }
+  #startCamBtn {
+    padding: 18px 28px;
+    font-size: 17px;
+    font-weight: bold;
+    border: none;
+    border-radius: 14px;
+    background: #d9364f;
+    color: #fff;
+  }
 </style>
 </head>
 <body>
@@ -124,6 +142,9 @@
   <div id="stage">
     <video id="video" playsinline muted autoplay></video>
     <img id="overlayImg" src="sample_kanban.png" alt="看板オーバーレイ">
+    <div id="startOverlay">
+      <button id="startCamBtn">▶ カメラを起動</button>
+    </div>
     <div id="resultWrap">
       <canvas id="resultCanvas"></canvas>
     </div>
@@ -173,6 +194,8 @@
   const resetBtn = document.getElementById('resetBtn');
   const shutterBtn = document.getElementById('shutterBtn');
   const errorBox = document.getElementById('errorBox');
+  const startOverlay = document.getElementById('startOverlay');
+  const startCamBtn = document.getElementById('startCamBtn');
   const resultWrap = document.getElementById('resultWrap');
   const resultCanvas = document.getElementById('resultCanvas');
   const afterButtons = document.getElementById('afterButtons');
@@ -262,15 +285,20 @@
       });
       video.srcObject = currentStream;
       errorBox.style.display = 'none';
+      startOverlay.classList.add('hidden');
     } catch (err) {
       showError(
         'カメラを起動できませんでした。<br>' +
         '・PCのブラウザで直接このファイルを開いている場合はWebカメラへのアクセスを許可してください。<br>' +
         '・スマホの場合は https:// で始まるURL（QRコード経由など）で開く必要があります。file:// や http:// では動作しないことがあります。<br>' +
+        '・iPhoneでカメラ許可のポップアップが出ない場合は、設定アプリ→Safari→カメラ の項目を確認してください。<br>' +
         '詳細: ' + (err && err.message ? err.message : err)
       );
+      startOverlay.classList.remove('hidden');
     }
   }
+
+  startCamBtn.addEventListener('click', startCamera);
 
   switchCamBtn.addEventListener('click', () => {
     facingMode = facingMode === 'environment' ? 'user' : 'environment';
@@ -351,9 +379,10 @@
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     showError('このブラウザはカメラAPIに対応していません。iOS Safari または Android Chrome の最新版でお試しください。');
-  } else {
-    startCamera();
+    startOverlay.classList.add('hidden');
   }
+  // カメラの起動は「▶ カメラを起動」ボタンのタップ（ユーザー操作）をきっかけに行う。
+  // iOS Safariは自動起動だとNotAllowedError（ユーザー操作が必要）でブロックするため。
   applyOverlayTransform();
 })();
 </script>
