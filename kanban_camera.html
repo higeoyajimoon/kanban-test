@@ -375,8 +375,11 @@
   // 撮影：ビデオ(cover表示)と看板オーバーレイを同じ見た目のまま1枚のcanvasに合成
   shutterBtn.addEventListener('click', () => {
     const stageRect = stage.getBoundingClientRect();
-    const outW = Math.round(stageRect.width * (window.devicePixelRatio || 1));
-    const outH = Math.round(stageRect.height * (window.devicePixelRatio || 1));
+    const dpr0 = window.devicePixelRatio || 1;
+    const outW = Math.round(stageRect.width * dpr0);
+    // 高さは実測値ではなく、STAGE_RATIO（3:4）から計算する。
+    // レイアウトの誤差に関わらず、保存される写真が必ず3:4になるようにするため。
+    const outH = Math.round(outW / STAGE_RATIO);
     resultCanvas.width = outW;
     resultCanvas.height = outH;
     const ctx = resultCanvas.getContext('2d');
@@ -384,8 +387,7 @@
     // --- video を object-fit:cover と同じ計算で描画 ---
     const vw = video.videoWidth, vh = video.videoHeight;
     if (vw && vh) {
-      // 表示枠と同じ比率（丸め誤差を避けるため、実際の表示サイズから直接計算）
-      const stageRatio = stageRect.width / stageRect.height;
+      const stageRatio = STAGE_RATIO;
       const videoRatio = vw / vh;
       let sx, sy, sw, sh;
       if (videoRatio > stageRatio) {
@@ -402,10 +404,10 @@
     }
 
     // --- 看板オーバーレイを画面と同じ位置・大きさ・透明度で描画 ---
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = dpr0;
     const scale = Number(scaleInput.value) / 100;
     const posY = Number(posYInput.value);
-    const stageH = stageRect.height;
+    const stageH = outH / dpr; // 保存用canvasと矛盾しないよう、実測値でなくoutHから逆算する
     const dy = (posY / 100) * (stageH / 2) + offsetY;
 
     const drawW = overlayNaturalW * scale * dpr;
