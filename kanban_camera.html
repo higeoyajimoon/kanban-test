@@ -438,17 +438,51 @@
     shutterBtn.style.display = 'block';
   });
 
+  // dataURL（base64）を同期的にBlobへ変換する。
+  // canvas.toBlob()は非同期のため、そのコールバック内でa.click()すると
+  // iOS Safariでは「ユーザー操作の直後」とみなされずダウンロードがブロックされることがある。
+  // toDataURL()は同期処理なので、タップ操作の流れを切らずに保存できる。
+  function dataURLToBlob(dataUrl) {
+    const parts = dataUrl.split(',');
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+    const binary = atob(parts[1]);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  }
+
+  function backToCamera() {
+    resultWrap.classList.remove('show');
+    resultCanvas.classList.remove('show');
+    afterButtons.style.display = 'none';
+    shutterBtn.style.display = 'block';
+  }
+
   saveBtn.addEventListener('click', () => {
-    resultCanvas.toBlob(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'kanban_photo_' + Date.now() + '.png';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-    }, 'image/png');
+    const filename = 'kanban_photo_' + Date.now() + '.png';
+    const dataUrl = resultCanvas.toDataURL('image/png');
+
+    if (navigator.canShare) {
+      try {
+        const file = new File([dataURLToBlob(dataUrl)], filename, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          // iPhoneではこの「共有」から「画像を保存」を選ぶと写真アプリに保存される
+          navigator.share({ files: [file] }).catch(() => {});
+          backToCamera();
+          return;
+        }
+      } catch (e) { /* 共有APIが使えない場合は下のダウンロード処理にフォールバック */ }
+    }
+
+    // PC・Androidなど: 通常のダウンロードとして保存
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    backToCamera();
   });
 
   window.addEventListener('resize', () => { sizeStage(); applyOverlayTransform(); });
