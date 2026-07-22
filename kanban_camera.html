@@ -31,7 +31,7 @@
     flex: 1;
     min-height: 0;
     position: relative;
-    background: #0f0; /* 診断用: 通常は#000。表示枠の外側が見えるようにする一時的な措置 */
+    background: #000;
     overflow: hidden;
   }
   #stage {
@@ -39,6 +39,8 @@
     overflow: hidden;
     background: #000;
     touch-action: none;
+    /* 外側のレターボックス部分と区別できるよう、枠に境界線を付ける */
+    border: 1px solid #444;
   }
   video {
     position: absolute; inset: 0;
