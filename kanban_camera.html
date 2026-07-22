@@ -352,7 +352,12 @@
     }
     try {
       currentStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: facingMode } },
+        video: {
+          facingMode: { ideal: facingMode },
+          // プレビューと撮影結果のズレを防ぐため、表示枠と同じ3:4の比率で
+          // カメラ自体に映像を要求する（対応していない端末は近い比率で応答する）
+          aspectRatio: { ideal: STAGE_RATIO }
+        },
         audio: false
       });
       video.srcObject = currentStream;
@@ -389,7 +394,8 @@
     // --- video を object-fit:cover と同じ計算で描画 ---
     const vw = video.videoWidth, vh = video.videoHeight;
     if (vw && vh) {
-      const stageRatio = outW / outH;
+      // 表示枠と同じ比率（丸め誤差を避けるため、実際の表示サイズから直接計算）
+      const stageRatio = stageRect.width / stageRect.height;
       const videoRatio = vw / vh;
       let sx, sy, sw, sh;
       if (videoRatio > stageRatio) {
