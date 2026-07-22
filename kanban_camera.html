@@ -38,6 +38,10 @@
     overflow: hidden;
     background: #000;
     touch-action: none;
+    /* JSでも幅・高さを指定するが、念のためCSS側でも3:4を保証しておく */
+    aspect-ratio: 3 / 4;
+    max-width: 100%;
+    max-height: 100%;
   }
   video {
     position: absolute; inset: 0;
@@ -204,8 +208,6 @@
       <button id="switchCamBtn">カメラ切替</button>
       <button id="rotateBtn">🔄 回転</button>
       <button id="resetBtn">位置リセット</button>
-      <label class="filebtn" for="fileInput">看板を選択</label>
-      <input type="file" id="fileInput" accept="image/*">
     </div>
     <div class="buttons">
       <button id="shutterBtn">📷 撮影する</button>
@@ -227,7 +229,6 @@
   const scaleInput = document.getElementById('scale');
   const posYInput = document.getElementById('posY');
   const switchCamBtn = document.getElementById('switchCamBtn');
-  const fileInput = document.getElementById('fileInput');
   const resetBtn = document.getElementById('resetBtn');
   const rotateBtn = document.getElementById('rotateBtn');
   const presetBtns = document.querySelectorAll('.presetBtn');
@@ -334,15 +335,6 @@
   stage.addEventListener('touchstart', dragStart, { passive: true });
   stage.addEventListener('touchmove', dragMove, { passive: false });
   stage.addEventListener('touchend', dragEnd);
-
-  // 独自の看板画像を選択
-  fileInput.addEventListener('change', () => {
-    const f = fileInput.files[0];
-    if (!f) return;
-    presetBtns.forEach(b => b.classList.remove('active'));
-    const url = URL.createObjectURL(f);
-    overlayImg.src = url;
-  });
 
   async function startCamera() {
     if (currentStream) {
@@ -490,6 +482,11 @@
   });
 
   window.addEventListener('resize', () => { sizeStage(); applyOverlayTransform(); });
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => { sizeStage(); applyOverlayTransform(); }, 300);
+  });
+  // iPhoneはアドレスバーの表示/非表示で表示領域が遅れて確定することがあるため、念のため少し後にも再計算する
+  setTimeout(() => { sizeStage(); applyOverlayTransform(); }, 300);
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     showError('このブラウザはカメラAPIに対応していません。iOS Safari または Android Chrome の最新版でお試しください。');
