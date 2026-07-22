@@ -137,19 +137,21 @@
 
   #presetRow {
     display: flex;
-    gap: 6px;
+    gap: 4px;
   }
   .presetBtn {
     flex: 1;
-    padding: 9px 8px;
+    min-width: 0;
+    padding: 9px 2px;
     background: #1c1c1c;
     border: 2px solid #333;
     border-radius: 10px;
     color: #eee;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     text-align: center;
     cursor: pointer;
+    white-space: nowrap;
   }
   .presetBtn.active {
     border-color: #ffd166;
@@ -169,7 +171,7 @@
   <div id="stageWrap">
     <div id="stage">
       <video id="video" playsinline muted autoplay></video>
-      <img id="overlayImg" src="kanban_sotsugyo.png" alt="看板オーバーレイ">
+      <img id="overlayImg" src="kanban_sotsugyo1.png" alt="看板オーバーレイ">
       <div id="startOverlay">
         <button id="startCamBtn">▶ カメラを起動</button>
       </div>
@@ -181,8 +183,10 @@
 
   <div id="controls">
     <div id="presetRow">
-      <button class="presetBtn active" data-src="kanban_sotsugyo.png">卒業式</button>
-      <button class="presetBtn" data-src="kanban_nyugaku.png">入学式</button>
+      <button class="presetBtn active" data-src="kanban_sotsugyo1.png">卒業式１</button>
+      <button class="presetBtn" data-src="kanban_sotsugyo2.png">卒業式２</button>
+      <button class="presetBtn" data-src="kanban_nyugaku1.png">入学式１</button>
+      <button class="presetBtn" data-src="kanban_nyugaku2.png">入学式２</button>
     </div>
 
     <div class="row">
