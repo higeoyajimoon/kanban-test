@@ -24,9 +24,17 @@
   }
   header b { color: #ffd166; }
 
+  #stageWrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+  }
   #stage {
     position: relative;
-    flex: 1;
     overflow: hidden;
     background: #000;
     touch-action: none;
@@ -168,14 +176,16 @@
 
   <div id="errorBox"></div>
 
-  <div id="stage">
-    <video id="video" playsinline muted autoplay></video>
-    <img id="overlayImg" src="kanban_sotsugyo.png" alt="看板オーバーレイ">
-    <div id="startOverlay">
-      <button id="startCamBtn">▶ カメラを起動</button>
-    </div>
-    <div id="resultWrap">
-      <canvas id="resultCanvas"></canvas>
+  <div id="stageWrap">
+    <div id="stage">
+      <video id="video" playsinline muted autoplay></video>
+      <img id="overlayImg" src="kanban_sotsugyo.png" alt="看板オーバーレイ">
+      <div id="startOverlay">
+        <button id="startCamBtn">▶ カメラを起動</button>
+      </div>
+      <div id="resultWrap">
+        <canvas id="resultCanvas"></canvas>
+      </div>
     </div>
   </div>
 
@@ -228,6 +238,7 @@
 (function () {
   const video = document.getElementById('video');
   const overlayImg = document.getElementById('overlayImg');
+  const stageWrap = document.getElementById('stageWrap');
   const stage = document.getElementById('stage');
   const opacityInput = document.getElementById('opacity');
   const scaleInput = document.getElementById('scale');
@@ -256,6 +267,17 @@
   function showError(msg) {
     errorBox.style.display = 'block';
     errorBox.innerHTML = msg;
+  }
+
+  // iPhone標準の写真比率（4:3 = 縦向きで幅3:高さ4）に固定してレターボックス表示する
+  const STAGE_RATIO = 3 / 4; // width / height
+  function sizeStage() {
+    const maxW = stageWrap.clientWidth;
+    const maxH = stageWrap.clientHeight;
+    let w = maxW, h = w / STAGE_RATIO;
+    if (h > maxH) { h = maxH; w = h * STAGE_RATIO; }
+    stage.style.width = Math.round(w) + 'px';
+    stage.style.height = Math.round(h) + 'px';
   }
 
   function applyOverlayTransform() {
@@ -444,7 +466,7 @@
     }, 'image/png');
   });
 
-  window.addEventListener('resize', applyOverlayTransform);
+  window.addEventListener('resize', () => { sizeStage(); applyOverlayTransform(); });
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     showError('このブラウザはカメラAPIに対応していません。iOS Safari または Android Chrome の最新版でお試しください。');
@@ -452,6 +474,7 @@
   }
   // カメラの起動は「▶ カメラを起動」ボタンのタップ（ユーザー操作）をきっかけに行う。
   // iOS Safariは自動起動だとNotAllowedError（ユーザー操作が必要）でブロックするため。
+  sizeStage();
   applyOverlayTransform();
 })();
 </script>
