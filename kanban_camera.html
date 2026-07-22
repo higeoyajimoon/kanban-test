@@ -211,6 +211,9 @@
       <button id="resetBtn">位置リセット</button>
     </div>
     <div class="buttons">
+      <button id="rotateBtn">🔄 看板を90°回転</button>
+    </div>
+    <div class="buttons">
       <button id="shutterBtn">📷 撮影する</button>
     </div>
     <div class="buttons" id="afterButtons" style="display:none;">
@@ -232,6 +235,7 @@
   const switchCamBtn = document.getElementById('switchCamBtn');
   const fileInput = document.getElementById('fileInput');
   const resetBtn = document.getElementById('resetBtn');
+  const rotateBtn = document.getElementById('rotateBtn');
   const presetBtns = document.querySelectorAll('.presetBtn');
   const shutterBtn = document.getElementById('shutterBtn');
   const errorBox = document.getElementById('errorBox');
@@ -247,6 +251,7 @@
   let currentStream = null;
   let overlayNaturalW = 1080, overlayNaturalH = 1920;
   let dragging = false, dragStartX = 0, dragStartY = 0, offsetX = 0, offsetY = 0, startOffX = 0, startOffY = 0;
+  let rotation = 0; // 0, 90, 180, 270度
 
   function showError(msg) {
     errorBox.style.display = 'block';
@@ -260,7 +265,7 @@
     const dy = (posY / 100) * (stageH / 2) + offsetY;
     overlayImg.style.width = overlayNaturalW * scale + 'px';
     overlayImg.style.transform =
-      'translate(-50%, -50%) translate(' + offsetX + 'px,' + dy + 'px)';
+      'translate(-50%, -50%) translate(' + offsetX + 'px,' + dy + 'px) rotate(' + rotation + 'deg)';
     overlayImg.style.opacity = Number(opacityInput.value) / 100;
   }
 
@@ -277,6 +282,12 @@
   resetBtn.addEventListener('click', () => {
     offsetX = 0; offsetY = 0;
     scaleInput.value = 70; posYInput.value = 0; opacityInput.value = 100;
+    rotation = 0;
+    applyOverlayTransform();
+  });
+
+  rotateBtn.addEventListener('click', () => {
+    rotation = (rotation + 90) % 360;
     applyOverlayTransform();
   });
 
@@ -287,6 +298,7 @@
       btn.classList.add('active');
       offsetX = 0; offsetY = 0;
       scaleInput.value = 70; posYInput.value = 0; opacityInput.value = 100;
+      rotation = 0;
       overlayImg.src = btn.dataset.src;
     });
   });
@@ -399,7 +411,11 @@
     const cy = outH / 2 + dy * dpr;
 
     ctx.globalAlpha = Number(opacityInput.value) / 100;
-    ctx.drawImage(overlayImg, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rotation * Math.PI / 180);
+    ctx.drawImage(overlayImg, -drawW / 2, -drawH / 2, drawW, drawH);
+    ctx.restore();
     ctx.globalAlpha = 1;
 
     resultWrap.classList.add('show');
