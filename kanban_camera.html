@@ -200,7 +200,7 @@
     </div>
     <div class="row">
       <label>大きさ</label>
-      <input type="range" id="scale" min="20" max="200" value="70">
+      <input type="range" id="scale" min="10" max="100" value="45">
     </div>
     <div class="row">
       <label>上下位置</label>
@@ -274,9 +274,12 @@
   function applyOverlayTransform() {
     const scale = Number(scaleInput.value) / 100;
     const posY = Number(posYInput.value); // -100〜100 (% of stage height)
+    const stageW = stage.clientWidth;
     const stageH = stage.clientHeight;
     const dy = (posY / 100) * (stageH / 2) + offsetY;
-    overlayImg.style.width = overlayNaturalW * scale + 'px';
+    // 「大きさ」は元画像のピクセル数ではなく、撮影枠の幅に対する割合で決める。
+    // 元画像の解像度が高いとスライダーの左側だけしか使えなくなってしまうため。
+    overlayImg.style.width = stageW * scale + 'px';
     overlayImg.style.transform =
       'translate(-50%, -50%) translate(' + offsetX + 'px,' + dy + 'px) rotate(' + rotation + 'deg)';
     overlayImg.style.opacity = Number(opacityInput.value) / 100;
@@ -294,7 +297,7 @@
 
   resetBtn.addEventListener('click', () => {
     offsetX = 0; offsetY = 0;
-    scaleInput.value = 70; posYInput.value = 0; opacityInput.value = 100;
+    scaleInput.value = 45; posYInput.value = 0; opacityInput.value = 100;
     rotation = 0;
     applyOverlayTransform();
   });
@@ -310,7 +313,7 @@
       presetBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       offsetX = 0; offsetY = 0;
-      scaleInput.value = 70; posYInput.value = 0; opacityInput.value = 100;
+      scaleInput.value = 45; posYInput.value = 0; opacityInput.value = 100;
       rotation = 0;
       overlayImg.src = btn.dataset.src;
     });
@@ -417,8 +420,9 @@
     const stageH = outH / dpr; // 保存用canvasと矛盾しないよう、実測値でなくoutHから逆算する
     const dy = (posY / 100) * (stageH / 2) + offsetY;
 
-    const drawW = overlayNaturalW * scale * dpr;
-    const drawH = overlayNaturalH * scale * dpr;
+    // プレビュー（stageW * scale）と同じ考え方で、撮影枠の幅(outW)に対する割合として大きさを決める
+    const drawW = outW * scale;
+    const drawH = drawW * (overlayNaturalH / overlayNaturalW);
     const cx = outW / 2 + offsetX * dpr;
     const cy = outH / 2 + dy * dpr;
 
